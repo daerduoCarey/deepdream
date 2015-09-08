@@ -71,8 +71,11 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
     # prepare base images for all octaves
     octaves = [preprocess(net, base_img)]
     for i in xrange(octave_n-1):
-        octaves.append(nd.zoom(octaves[-1], (1, 1.0/octave_scale,1.0/octave_scale), order=1))
-    
+        octaves.append(nd.zoom(octaves[-1], (1, 1.0/octave_scale, 1.0/octave_scale), order=1))
+        plt.imshow(octaves[-1].transpose(1, 2, 0))
+        plt.savefig('res/ori_'+'{:08}'.format(i)+'.jpg', dpi=100)
+        plt.close()
+
     src = net.blobs['data']
     detail = np.zeros_like(octaves[-1]) # allocate image for network-produced details
     for octave, octave_base in enumerate(octaves[::-1]):
@@ -91,7 +94,7 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
             vis = deprocess(net, src.data[0])
             if not clip: # adjust image contrast if clipping is disabled
                 vis = vis*(255.0/np.percentile(vis, 99.98))
-            showarray(vis, 'res/{:08}'.format(i) + '.jpg')
+            showarray(vis, 'res/octave_'+str(octave)+'_res'+'{:08}'.format(i) + '.jpg')
             print octave, i, end, vis.shape
             
         # extract details produced on the current octave
