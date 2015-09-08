@@ -1,7 +1,7 @@
 # imports and basic notebook setup
-from cStringIO import StringIO
 import numpy as np
 import scipy.ndimage as nd
+import matplotlib.pyplot as plt
 import PIL.Image
 from google.protobuf import text_format
 
@@ -12,10 +12,12 @@ import caffe
 caffe.set_mode_gpu()
 caffe.set_device(0) # select GPU device if multiple devices exist
 
-def showarray(a, fmt='jpeg'):
+def showarray(a, filename, fmt='jpeg'):
     a = np.uint8(np.clip(a, 0, 255))
-    f = StringIO()
-    PIL.Image.fromarray(a).save(f, fmt)
+    plt.imshow(a)
+    plt.axis('off')
+    plt.savefig(filename, dpi=100)
+    plt.close()
 
 model_path = '../mycaffe/models/bvlc_googlenet/' # substitute your path here
 net_fn   = model_path + 'deploy.prototxt'
@@ -89,9 +91,8 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
             vis = deprocess(net, src.data[0])
             if not clip: # adjust image contrast if clipping is disabled
                 vis = vis*(255.0/np.percentile(vis, 99.98))
-            showarray(vis)
+            showarray(vis, 'res/{:08}'.format(i) + '.jpg')
             print octave, i, end, vis.shape
-            clear_output(wait=True)
             
         # extract details produced on the current octave
         detail = src.data[0]-octave_base
@@ -99,6 +100,6 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
     return deprocess(net, src.data[0])
 
 img = np.float32(PIL.Image.open('sky1024px.jpg'))
-showarray(img)
+showarray(img, 'res/ori.jpg')
 
 _=deepdream(net, img)
