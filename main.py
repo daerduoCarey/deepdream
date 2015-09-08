@@ -43,6 +43,17 @@ def deprocess(net, img):
 def objective_L2(dst):
     dst.diff[:] = dst.data 
 
+def objective_guide(dst, guide_features):
+    x = dst.data[0].copy()
+    y = guide_features
+    ch = x.shape[0]
+    x = x.reshape(ch, -1)
+    y = y.reshape(ch, -1)
+    print x.shape
+    print y.shape
+    A = x.T.dot(y) # compute the matrix of dot-products with guide features
+    dst.diff[0].reshape(ch, -1)[:] = y[:, A.argmax(1)] # select ones that match best
+
 def make_step(net, step_size=1.5, end='inception_4c/output', 
               jitter=32, clip=True, objective=objective_L2):
     '''Basic gradient ascent step.'''
@@ -71,7 +82,6 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
     # prepare base images for all octaves
     octaves = [preprocess(net, base_img)]
     for i in xrange(octave_n-1):
-        showarray(deprocess(net, octaves[-1]), 'res/ori_'+'{:08}'.format(i)+'.jpg')
         octaves.append(nd.zoom(octaves[-1], (1, 1.0/octave_scale, 1.0/octave_scale), order=1))
 
     src = net.blobs['data']
