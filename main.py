@@ -16,7 +16,7 @@ def showarray(a, filename, fmt='jpeg'):
     a = np.uint8(np.clip(a, 0, 255))
     plt.imshow(a)
     plt.axis('off')
-    plt.savefig(filename, dpi=100)
+    plt.savefig(filename)
     plt.close()
 
 model_path = '../mycaffe/models/bvlc_googlenet/' # substitute your path here
@@ -71,10 +71,8 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
     # prepare base images for all octaves
     octaves = [preprocess(net, base_img)]
     for i in xrange(octave_n-1):
+        showarray(deprocess(net, octaves[-1]), 'res/ori_'+'{:08}'.format(i)+'.jpg')
         octaves.append(nd.zoom(octaves[-1], (1, 1.0/octave_scale, 1.0/octave_scale), order=1))
-        plt.imshow(octaves[-1].transpose(1, 2, 0))
-        plt.savefig('res/ori_'+'{:08}'.format(i)+'.jpg', dpi=100)
-        plt.close()
 
     src = net.blobs['data']
     detail = np.zeros_like(octaves[-1]) # allocate image for network-produced details
